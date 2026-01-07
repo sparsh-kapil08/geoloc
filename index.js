@@ -136,7 +136,8 @@ async function identifyLocation(base64Image, file) {
       contents: {
         parts: [
           { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
-          { text: `Locate this image. Be precise. prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.`}
+          { text: `Locate this image. Be precise. prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.
+          make sure if the image dosent have unique visuals, it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6`}
         ]
       },
       config: {
