@@ -1,0 +1,9 @@
+{
+  "auto_rickshaw": {
+    "lat": 28.6139,
+    "lng": 77.2090,
+    "city": "Delhi",
+    "country": "India",
+    "reasoning": "Auto-rickshaws are extremely common in Indian metropolitan cities, especially Delhi."
+  }
+}

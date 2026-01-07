@@ -1,0 +1,9 @@
+
+{
+  "name": "GeoLoc",
+  "description": "AI image geolocation powered by Gemini Vision and Leaflet.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
