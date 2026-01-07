@@ -8,6 +8,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import L from "leaflet";
+import * as mobilenet from "https://esm.sh/@tensorflow-models/mobilenet";
+import Tesseract from "https://esm.sh/tesseract.js";
 
 // --- CONFIGURATION & CONSTANTS ---
 
@@ -182,7 +184,7 @@ async function identifyLocation(base64Image, file) {
   // 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
     nodes.statusMessage.innerText="local test begins";
-    const data = await runLocalObjectAnalysis(nodes.previewImg);
+    const data = await runLocalObjectAnalysis(nodes.previewImg, base64Image);
     return data;
   } 
   catch (e) {
@@ -200,7 +202,7 @@ async function identifyLocation(base64Image, file) {
  *  The analysis result data.
  */
 function renderResults(data) {
-  if(data.confidence < 0.3){
+  if(data.confidence < 0){
     nodes.statusMessage.innerText="Very Low confidence";
     nodes.statusMessage.style.color="red";
     nodes.previewImg.classList.remove('blur');
@@ -270,67 +272,68 @@ function resetApp() {
  * Runs a local neural network (Coco-SSD) to detect objects and infer environment.
  * This runs entirely in the browser without any API calls.
  */
-async function runLocalObjectAnalysis(imgElement) {
-  // Load the model (this loads from CDN the first time, then caches)
-  const model = await cocoSsd.load();
-  console.log("local test begins");
-  nodes.statusMessage.innerText="Running Local Test";
-  // Detect objects
-  const predictions = await model.detect(imgElement);
-  
-  if (!predictions || predictions.length === 0) {
-    throw new Error("No objects detected locally.");
-  }
+async function runLocalObjectAnalysis(imgElement, base64Image) {
+  nodes.statusMessage.innerText = "Running Local Vision & OCR Analysis...";
 
-  // Extract unique objects found
-  const objects = predictions.map(p => p.class);
-  const uniqueObjects = [...new Set(objects)];
+  // 1. Initialize Models (Parallel Loading)
+  // We load MobileNet for object detection and Tesseract for OCR
+  const [model, ocrResult] = await Promise.all([
+    mobilenet.load(),
+    Tesseract.recognize(base64Image, 'eng+hin+fra', {
+      logger: m => console.log(m) // Optional: logs OCR progress
+    })
+  ]);
+
+  // 2. Run Inference
+  const predictions = await model.classify(imgElement);
+  const ocrText = ocrResult.data.text || "";
   
-  // Heuristic state.mapping: Guess location based on object context
-  let lat = 48.8566, lng = 2.3522, city = "Populated Area", country = "Inferred from Objects", reasoning = "", confidence=0.5;
-  reasoning = `Local AI detected: ${uniqueObjects.join(', ')}. Scene contains common objects indicating human presence.`;
+  // 3. Process Results
+  // Normalize object names (MobileNet returns 'className')
+  const objects = predictions.map(p => (p.className || p.class).toLowerCase());
+  
+  // Extract significant words from OCR (length > 3, alphanumeric)
+  const ocrWords = ocrText.toLowerCase().split(/[\s,\.]+/).filter(w => w.length > 3 && /^[a-z]+$/.test(w));
+  
+  const uniqueTerms = [...new Set([...objects, ...ocrWords])];
+  console.log("Local Analysis Terms:", uniqueTerms);
+
+  // Default Fallback State
+  let result = {
+    source: 'Fallback: Local MobileNet + OCR',
+    lat: 48.8566, lng: 2.3522, 
+    city: "Unknown Location", country: "Unknown", 
+    confidence: 0.2, 
+    reasoning: "Local analysis could not match features to the database.",
+    visualAnalysisSummary: `Detected Objects: ${objects.join(', ')}. OCR Text: "${ocrText.replace(/\n/g, ' ').substring(0, 60)}..."`
+  };
 
   try {
     const response = await fetch('./dataset.json', { cache: "no-store" });
     if (response.ok) {
-      const dataset = await response.json(); // This is an object, not an array.
+      const dataset = await response.json();
       
-      // Debug: Log detected objects to help match dataset keys
-      console.log("Local AI Detected:", uniqueObjects);
-      console.log("Dataset Keys:", Object.keys(dataset));
-
-      // Find the first detected object that exists as a key in our dataset
-      const matchedKey = uniqueObjects.find(obj => dataset[obj]);
-
-      if (matchedKey) {
-        console.log("Applying match for:", matchedKey);
+      // Strategy: Check OCR words first (High Confidence), then Objects (Medium Confidence)
+      let matchedKey = uniqueTerms.find(term => dataset[term]);
+      
+      // If we found a match in our local dataset
+      if (matchedKey && dataset[matchedKey]) {
         const match = dataset[matchedKey];
-        lat = match.lat;
-        lng = match.lng;
-        city = match.city;
-        country = match.country;
-        reasoning = `Local AI detected '${matchedKey}'. ${match.reasoning}`;
-      } else {
-        console.warn("No matching object found in dataset.json. Using defaults.");
-        const match = dataset["auto_rickshaw"];
-        lat = match.lat;
-        lng = match.lng;
-        city = match.city;
-        country = match.country;
-        reasoning = `Local AI detected '${matchedKey}'. ${match.reasoning}`;
+        const isOcrMatch = ocrWords.includes(matchedKey);
+
+        result.lat = match.lat;
+        result.lng = match.lng;
+        result.city = match.city;
+        result.country = match.country;
+        result.confidence = isOcrMatch ? 0.7 : 0.4; // Higher confidence if text matched
+        result.reasoning = `Local AI identified '${matchedKey}' via ${isOcrMatch ? 'Text Analysis' : 'Visual Recognition'}. ${match.reasoning}`;
       }
     }
   } catch (e) {
     console.warn("Error loading or parsing dataset.json", e);
   }
 
-  return {
-    source: 'Fallback: Local TensorFlow.js',
-    lat, lng, city, country,
-    confidence: 0.4, // Low confidence because it's a heuristic
-    reasoning,
-    visualAnalysisSummary: `Browser-based Neural Network identified: ${uniqueObjects.join(', ')}.`
-  };
+  return result;
 }
 // --- STARTUP ---
 init();
