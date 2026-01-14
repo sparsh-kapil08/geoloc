@@ -135,7 +135,7 @@ async function identifyLocation(base64Image, file) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const aiResponse = await ai.models.generateContent({
       tools: [{googleSearch:{}}], // Enable Google Search tool
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.0-flash',
       contents: {
         parts: [
           { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
@@ -151,7 +151,7 @@ async function identifyLocation(base64Image, file) {
 
     const parsed = JSON.parse(aiResponse.text);
     if (parsed.lat && parsed.lng) {
-      return { ...parsed, source: 'Gemini-3-Flash AI' };
+      return { ...parsed, source: 'Gemini-2.0-Flash AI' };
     }
   } catch (e) {
     console.warn("AI Analysis failed, trying other models", e);
@@ -162,6 +162,7 @@ async function identifyLocation(base64Image, file) {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
         model: 'gemini-1.5-flash',
+        tools: [{googleSearch:{}}], // Enable Google Search tool
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
@@ -175,7 +176,7 @@ async function identifyLocation(base64Image, file) {
       });
       const parsed = JSON.parse(aiResponse.text);
       if (parsed.lat && parsed.lng) {
-        return { ...parsed, source: 'Gemini-2.5-Flash AI' };
+        return { ...parsed, source: 'Gemini-1.5-Flash AI' };
       }
     } catch (err) {
       console.warn("Secondary AI failed", err);
