@@ -10,7 +10,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import L from "leaflet";
 import * as mobilenet from "https://esm.sh/@tensorflow-models/mobilenet";
 import Tesseract from "https://esm.sh/tesseract.js";
-
 // --- CONFIGURATION & CONSTANTS ---
 
 /**
@@ -131,58 +130,71 @@ async function handleFileSelect(e) {
 async function identifyLocation(base64Image, file) {
   // 1. Try Gemini AI
   try {
+    const serpResponse = await Vision(base64Image);
+    console.log("Serp Response:", serpResponse);
     const preference = nodes.prefer.value;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const aiResponse = await ai.models.generateContent({
-      tools: [{googleSearch:{}}], // Enable Google Search tool
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
-          { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
-          { text: `Locate this image. Be precise. prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.
-          make sure if the image dosent have unique visuals,to the point names which defines the place. it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6`}
+          {inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] }},
+          { text: `Locate this image. Be precise. prefer ${preference},search on web and Return a JSON object with lat, lng, city, country, confidence, and reasoning.
+          make sure if the image dosent have unique visuals,to the point names which defines the place. it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6
+          the hints image got from the google lens=${serpResponse}` },
         ]
       },
       config: {
         responseMimeType: "application/json",
-        responseSchema: GEMINI_RESPONSE_SCHEMA
+        responseSchema: GEMINI_RESPONSE_SCHEMA,
       }
     });
-
     const parsed = JSON.parse(aiResponse.text);
     if (parsed.lat && parsed.lng) {
-      return { ...parsed, source: 'Gemini-2.0-Flash AI' };
+      return { ...parsed, source: 'Gemini 3 Flash' };
     }
   } catch (e) {
     console.warn("AI Analysis failed, trying other models", e);
-  
-    // Fallback: Try Secondary Model
+  }
+
+    /* "Fallback: Try Secondary Model
     try {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        tools: [{googleSearch:{}}], // Enable Google Search tool
+        model: 'gemini-2.5-flash',
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
-            { text: `Locate this image. Be precise. prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.`}
+            { text: `Locate this image. Be precise. prefer ${preference},search on web and Return a text object with lat, lng, city, country, confidence, and reasoning.`}
+          ]
+        },
+        config: {
+          tools: [{googleMaps:{}}] // Enable Google Search tool
+        }
+      });
+      const Text=aiResponse.text;
+      const airesponse2=await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: {
+          parts: [
+            { text: `Extract lat,lng,city,country,confidence and reasoning from this text and return as a JSON object: ${Text}` }
           ]
         },
         config: {
           responseMimeType: "application/json",
-          responseSchema: GEMINI_RESPONSE_SCHEMA
+          responseSchema: GEMINI_RESPONSE_SCHEMA,
         }
       });
-      const parsed = JSON.parse(aiResponse.text);
+      const parsed = JSON.parse(airesponse2.text);
       if (parsed.lat && parsed.lng) {
-        return { ...parsed, source: 'Gemini-1.5-Flash AI' };
+        return { ...parsed, source: 'Gemini 2.5 Flash' };
       }
     } catch (err) {
       console.warn("Secondary AI failed", err);
     }
-  }
   
+  */
   // 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
     nodes.statusMessage.innerText="local test begins";
@@ -193,16 +205,13 @@ async function identifyLocation(base64Image, file) {
     console.warn("Local AI failed", e);
   }
 
- 
-  
-}
-
 // --- UI & RENDERING ---
 
 /**
  * Renders the final results of the analysis in the sidebar.
  *  The analysis result data.
  */
+}
 function renderResults(data) {
   if(data.confidence < 0){
     nodes.statusMessage.innerText="Very Low confidence";
@@ -337,5 +346,37 @@ async function runLocalObjectAnalysis(imgElement, base64Image) {
 
   return result;
 }
+async function Vision(base64Image) {
+  const preference = nodes.prefer.value;
+  const formData = new FormData();
+  
+  // 1. Upload to ImgBB (This part is usually fast)
+  formData.append("image", base64Image.split(',')[1]);
+  console.log('Initiating ImgBB upload...');
+  
+  const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMG_BB}`, {
+    method: 'POST',
+    body: formData
+  });
+  const imgbbResponse = await imgbb.json();
+  const imageUrl = imgbbResponse.data.url;
+  console.log("Image URL:", imageUrl);
+
+  // 2. Tell our backend to START the SerpApi search (Async)
+  const serpinit=await fetch(`http://localhost:3000/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
+  const Response=await serpinit.json();
+  console.log(Response);
+  try{
+    const Response2=Response["visual_matches"].slice(0,5);
+    const title=Response2.map(item=>item.title).join(", ");
+    return title;
+  }
+  catch(e){
+    return "No visual matches found";
+  }
+  
+  
+}
+
 // --- STARTUP ---
 init();
