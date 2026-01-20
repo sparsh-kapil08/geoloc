@@ -14,4 +14,5 @@ app.use("/search.json"  ,async(req,res)=>{
     }
 );
 });
+export default app;
 Viteexpress.listen(app,3000);
