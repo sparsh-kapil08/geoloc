@@ -366,16 +366,18 @@ async function Vision(base64Image) {
   const serpinit=await fetch(`/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
   const Response=await serpinit.json();
   console.log(Response);
+
   try{
-    const Response2=Response["visual_matches"].slice(0,5);
-    const title=Response2.map(item=>item.title).join(", ");
-    return title;
+    const ai=Response["ai_overview"];
+    const page_token=ai["page_token"];
+    const overview=await fetch(`/overview?engine=google_ai_overview&page_token=${page_token}&api_key=${process.env.SERP_AI}`);
+    const overviewResponse=await overview.json();
+    const airesponse=overviewResponse["ai_overview"];
+    return JSON.stringify(airesponse);
   }
   catch(e){
-    return "No visual matches found";
+    return "No visual matches or ai overview found";
   }
-  
-  
 }
 
 // --- STARTUP ---

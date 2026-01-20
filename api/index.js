@@ -14,4 +14,13 @@ app.use("/search.json"  ,async(req,res)=>{
     }
 );
 });
+app.use("/overview",async(req,res)=>{
+    getJson({
+  engine: "google_ai_overview",
+  page_token: req.query.page_token,
+  api_key: process.env.SERP_AI,
+}, (json) => {
+  console.log(json["ai_overview"]);
+});
+});
 export default app;
