@@ -373,6 +373,7 @@ async function Vision(base64Image) {
     const overview=await fetch(`/overview?engine=google_ai_overview&page_token=${page_token}&api_key=${process.env.SERP_AI}`);
     const overviewResponse=await overview.json();
     const airesponse=overviewResponse["ai_overview"];
+    console.log(airesponse);
     return JSON.stringify(airesponse);
   }
   catch(e){
