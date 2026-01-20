@@ -15,32 +15,13 @@ app.get("/search.json", async (req, res) => {
             api_key: process.env.SERP_AI,
             no_cache: true // Necessary to get a valid token
         }, async (lensJson) => {
-
-            // 2. Check for the page_token immediately
-            const token = lensJson.ai_overview?.page_token;
-
-            if (token) {
-                // 3. INTERNAL SECOND CALL (Beating the 60s clock)
-                getJson({
-                    engine: "google_ai_overview",
-                    page_token: token,
-                    api_key: process.env.SERP_AI,
-                    no_cache: true
-                }, (aiResult) => {
-                    // Send everything back in one go
-                    res.json({
-                        ...lensJson,
-                        ai_overview: aiResult.ai_overview
-                    });
-                });
-            } else {
-                // No token? Just send the Lens results
-                res.json(lensJson);
-            }
+            res.json(lensJson);
         });
-    } catch (err) {
-        res.status(500).json({ error: "Server Error" });
-    }
+        
+        }
+        catch (error) {
+            res.status(500).json({ error: error.message });
+        }
 });
 
 export default app;

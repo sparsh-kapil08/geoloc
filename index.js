@@ -367,24 +367,13 @@ async function Vision(base64Image) {
   const Response=await serpinit.json();
   console.log(Response);
 
-  try{
-    const ai=Response["ai_overview"];
-    const page_token=ai["page_token"];
-    console.log("Page Token:",page_token);
-    try{
-      const overview=await fetch(`/overview?engine=google_ai_overview&page_token=${page_token}&api_key=${process.env.SERP_AI}`);
-      const overviewResponse=await overview.json();
-      console.log(overviewResponse);
-      const airesponse=overviewResponse["ai_overview"];
-      
-    }
-    catch(e1){
-      return("No ai overview found");
-    }
-    return JSON.stringify(airesponse);
+  if (!Response.ai_overview?.references) {
+    const output=Response.visual_matches.map(item=>item.title).join(", ");
+    return output;
   }
-  catch(e){
-    return "No visual matches or ai overview found";
+  else{
+    const output=Response.ai_overview.references.map(item=>item.snippet).join(", ");
+    return output;
   }
 }
 
