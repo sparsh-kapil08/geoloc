@@ -135,7 +135,7 @@ async function identifyLocation(base64Image, file) {
     const preference = nodes.prefer.value;
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const aiResponse = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.5-flash',
       contents: {
         parts: [
           {inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] }},
@@ -370,10 +370,17 @@ async function Vision(base64Image) {
   try{
     const ai=Response["ai_overview"];
     const page_token=ai["page_token"];
-    const overview=await fetch(`/overview?engine=google_ai_overview&page_token=${page_token}&api_key=${process.env.SERP_AI}`);
-    const overviewResponse=await overview.json();
-    const airesponse=overviewResponse["ai_overview"];
-    console.log(airesponse);
+    console.log("Page Token:",page_token);
+    try{
+      const overview=await fetch(`/overview?engine=google_ai_overview&page_token=${page_token}&api_key=${process.env.SERP_AI}`);
+      const overviewResponse=await overview.json();
+      console.log(overviewResponse);
+      const airesponse=overviewResponse["ai_overview"];
+      
+    }
+    catch(e1){
+      return("No ai overview found");
+    }
     return JSON.stringify(airesponse);
   }
   catch(e){
