@@ -135,7 +135,7 @@ async function identifyLocation(base64Image, file) {
     const preference = nodes.prefer.value;
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const aiResponse = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: {
         parts: [
           {inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] }},
@@ -157,7 +157,7 @@ async function identifyLocation(base64Image, file) {
     console.warn("AI Analysis failed, trying other models", e);
   }
 
-    /* "Fallback: Try Secondary Model
+  // "Fallback: Try Secondary Model
     try {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -166,19 +166,9 @@ async function identifyLocation(base64Image, file) {
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
-            { text: `Locate this image. Be precise. prefer ${preference},search on web and Return a text object with lat, lng, city, country, confidence, and reasoning.`}
-          ]
-        },
-        config: {
-          tools: [{googleMaps:{}}] // Enable Google Search tool
-        }
-      });
-      const Text=aiResponse.text;
-      const airesponse2=await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: {
-          parts: [
-            { text: `Extract lat,lng,city,country,confidence and reasoning from this text and return as a JSON object: ${Text}` }
+            { text: `Locate this image. Be precise. prefer ${preference},search on web and Return a JSON object with lat, lng, city, country, confidence, and reasoning.
+          make sure if the image dosent have unique visuals,to the point names which defines the place. it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6
+          the hints image got from the google lens=${serpResponse}`}
           ]
         },
         config: {
@@ -186,15 +176,13 @@ async function identifyLocation(base64Image, file) {
           responseSchema: GEMINI_RESPONSE_SCHEMA,
         }
       });
-      const parsed = JSON.parse(airesponse2.text);
+      const parsed = JSON.parse(aiResponse.text);
       if (parsed.lat && parsed.lng) {
         return { ...parsed, source: 'Gemini 2.5 Flash' };
       }
     } catch (err) {
       console.warn("Secondary AI failed", err);
     }
-  
-  */
   // 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
     nodes.statusMessage.innerText="local test begins";
