@@ -363,7 +363,7 @@ async function Vision(base64Image) {
   console.log("Image URL:", imageUrl);
 
   // 2. Tell our backend to START the SerpApi search (Async)
-  const serpinit=await fetch(`http://localhost:3000/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
+  const serpinit=await fetch(`/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
   const Response=await serpinit.json();
   console.log(Response);
   try{
