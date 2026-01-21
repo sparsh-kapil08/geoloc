@@ -185,6 +185,32 @@ async function identifyLocation(base64Image, file) {
   } catch (err) {
       console.warn("Secondary AI failed", err);
   }
+  try {
+      const preference = nodes.prefer.value;
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const aiResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-preview',
+        contents: {
+          parts: [
+            { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
+            { text: `Locate this image, Be precise, prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.
+          make sure if the image doesn't have unique visuals,to the point names which defines the place, it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6,
+          the hints image got from the google lens=${serpResponse},
+          make sure to verify the answer`}
+          ]
+        },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: GEMINI_RESPONSE_SCHEMA,
+        }
+      });
+      const parsed = JSON.parse(aiResponse.text);
+      if (parsed.lat && parsed.lng) {
+        return { ...parsed, source: 'Gemini 2.5 Flash' };
+      }
+  } catch (err) {
+      console.warn("Tertiary AI failed", err);
+  }
   /* 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
     nodes.statusMessage.innerText="local test begins";
