@@ -339,6 +339,7 @@ async function runLocalObjectAnalysis(imgElement, base64Image) {
 async function Vision(base64Image) {
   const preference = nodes.prefer.value;
   const formData = new FormData();
+  console.log(process.env.GEMINI_API_KEY);
   
   // 1. Upload to ImgBB (This part is usually fast)
   formData.append("image", base64Image.split(',')[1]);
