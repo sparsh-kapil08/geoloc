@@ -163,7 +163,7 @@ async function identifyLocation(base64Image, file) {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite',
+        model: 'gemini-2.5-pro',
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
@@ -180,7 +180,7 @@ async function identifyLocation(base64Image, file) {
       });
       const parsed = JSON.parse(aiResponse.text);
       if (parsed.lat && parsed.lng) {
-        return { ...parsed, source: 'Gemini 2.5 Flash' };
+        return { ...parsed, source: 'Gemini 2.5 Pro' };
       }
   } catch (err) {
       console.warn("Secondary AI failed", err);
