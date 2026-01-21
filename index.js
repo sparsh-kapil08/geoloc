@@ -159,6 +159,7 @@ async function identifyLocation(base64Image, file) {
 
   // "Fallback: Try Secondary Model
   try {
+    const serpResponse = await Vision(base64Image);
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
