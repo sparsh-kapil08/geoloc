@@ -117,7 +117,7 @@ async function handleFileSelect(e) {
       renderResults(result);
     } catch (err) {
       console.error(err);
-      nodes.statusMessage.innerText = "All Scans Failed, Location Not Found";
+      nodes.statusMessage.innerText = "Location Not Found,either refresh the page or try again later!";
       nodes.statusMessage.style.color = "#d93025";
     }
   };
@@ -189,7 +189,7 @@ async function identifyLocation(base64Image, file) {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-preview',
+        model: 'gemini-2.5-flash',
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
@@ -210,6 +210,7 @@ async function identifyLocation(base64Image, file) {
       }
   } catch (err) {
       console.warn("Tertiary AI failed", err);
+      resetApp();
   }
   /* 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
