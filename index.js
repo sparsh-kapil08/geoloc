@@ -162,7 +162,7 @@ async function identifyLocation(base64Image, file) {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash-lite',
         contents: {
           parts: [
             { inlineData: { mimeType: 'image/jpeg', data: base64Image.split(',')[1] } },
