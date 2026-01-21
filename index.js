@@ -158,7 +158,7 @@ async function identifyLocation(base64Image, file) {
   }
 
   // "Fallback: Try Secondary Model
-    try {
+  try {
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
@@ -180,10 +180,10 @@ async function identifyLocation(base64Image, file) {
       if (parsed.lat && parsed.lng) {
         return { ...parsed, source: 'Gemini 2.5 Flash' };
       }
-    } catch (err) {
+  } catch (err) {
       console.warn("Secondary AI failed", err);
-    }
-  // 3. Fallback: Local Object Detection (TensorFlow.js)
+  }
+  /* 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
     nodes.statusMessage.innerText="local test begins";
     const data = await runLocalObjectAnalysis(nodes.previewImg, base64Image);
@@ -301,7 +301,7 @@ async function runLocalObjectAnalysis(imgElement, base64Image) {
   let result = {
     source: 'Fallback: Local MobileNet + OCR',
     lat: 48.8566, lng: 2.3522, 
-    city: "Unknown Location", country: "Unknown", 
+    city: "Error Location", country: "Unknown", 
     confidence: 0.2, 
     reasoning: "Local analysis could not match features to the database.",
     visualAnalysisSummary: `Detected Objects: ${objects.join(', ')}. OCR Text: "${ocrText.replace(/\n/g, ' ').substring(0, 60)}..."`
