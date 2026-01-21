@@ -142,7 +142,7 @@ async function identifyLocation(base64Image, file) {
           { text: `Locate this image, analyse the environment, prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.
           make sure if the image doesn't have unique visuals,to the point names which defines the place, it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6,
           the hints image got from the google lens=${serpResponse},
-          do not depend on google lens,verify your answer` },
+          make sure to verify the answer` },
         ]
       },
       config: {
@@ -170,7 +170,7 @@ async function identifyLocation(base64Image, file) {
             { text: `Locate this image, analyse the environment, prefer ${preference}, Return a JSON object with lat, lng, city, country, confidence, and reasoning.
           make sure if the image doesn't have unique visuals,to the point names which defines the place, it looks like multiple places then give your response with the confidence in the range of 0.4 to 0.6,
           the hints image got from the google lens=${serpResponse},
-          do not depend on google lens,verify your answer`}
+          make sure to verify the answer`}
           ]
         },
         config: {
