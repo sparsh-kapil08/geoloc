@@ -128,9 +128,9 @@ async function handleFileSelect(e) {
  * Main Logic: Tries AI first, then falls back to Metadata.
  */
 async function identifyLocation(base64Image, file) {
+  const serpResponse = await Vision(base64Image);
   // 1. Try Gemini AI
   try {
-    const serpResponse = await Vision(base64Image);
     console.log("Serp Response:", serpResponse);
     const preference = nodes.prefer.value;
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -159,7 +159,6 @@ async function identifyLocation(base64Image, file) {
 
   // "Fallback: Try Secondary Model
   try {
-    const serpResponse = await Vision(base64Image);
       const preference = nodes.prefer.value;
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const aiResponse = await ai.models.generateContent({
