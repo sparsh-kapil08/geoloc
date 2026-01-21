@@ -150,7 +150,7 @@ async function identifyLocation(base64Image, file) {
         responseSchema: GEMINI_RESPONSE_SCHEMA,
       }
     });
-    const parsed = JSON.parse(aiResponse.text);
+    const parsed = JSON.parse(aiResponse.text());
     if (parsed.lat && parsed.lng) {
       return { ...parsed, source: 'Gemini 3 Flash' };
     }
