@@ -354,16 +354,18 @@ async function Vision(base64Image) {
   const serpinit=await fetch(`/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
   const Response=await serpinit.json();
   console.log(Response);
-
-  if (!Response.ai_overview?.references) {
-    const output=Response.visual_matches.map(item=>item.title).join(", ");
-    return output;
-  }
-  else{
-    const output=Response.ai_overview.references.map(item=>item.snippet).join(", ");
-    return output;
+  try{
+    if (!Response.ai_overview?.references) {
+      const output=Response.visual_matches.map(item=>item.title).join(", ");
+      return output;
+    }
+    else{
+      const output=Response.ai_overview.references.map(item=>item.snippet).join(", ");
+      return output;
+    }
+  }catch(e){
+  return "No relevant data found from SerpApi.";
   }
 }
-
 // --- STARTUP ---
 init();
