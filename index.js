@@ -8,8 +8,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import L from "leaflet";
-import * as mobilenet from "https://esm.sh/@tensorflow-models/mobilenet";
-import Tesseract from "https://esm.sh/tesseract.js";
+import * as mobilenet from "https://cdn.skypack.dev/@tensorflow-models/mobilenet";
+import Tesseract from "https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/+esm";
 // --- CONFIGURATION & CONSTANTS ---
 
 /**
