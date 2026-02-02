@@ -109,7 +109,7 @@ async function handleFileSelect(e) {
     nodes.resultsContent.classList.add('hidden');
     nodes.statusMessage.classList.remove('hidden');
     nodes.statusMessage.textContent = "Analyzing image location...";
-    nodes.statusMessage.style.color = "#5f6368";
+    nodes.statusMessage.style.color = "#167efc";
 
     try {
       const result = await identifyLocation(base64Image, file);
@@ -371,16 +371,18 @@ async function Vision(base64Image) {
   // 1. Upload to ImgBB (This part is usually fast)
   formData.append("image", base64Image.split(',')[1]);
   console.log('Initiating ImgBB upload...');
-  
+  nodes.statusMessage.innerText = "Uploading image for analysis...";
   const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMG_BB}`, {
     method: 'POST',
     body: formData
   });
+
   const imgbbResponse = await imgbb.json();
   const imageUrl = imgbbResponse.data.url;
   console.log("Image URL:", imageUrl);
 
   // 2. Tell our backend to START the SerpApi search (Async)
+  nodes.statusMessage.innerText = "Image uploaded, fetching results";
   const serpinit=await fetch(`/search.json?engine=google_lens&url=${imageUrl}&api_key=${process.env.SERP_AI}&preference=${preference}`);
   const Response=await serpinit.json();
   console.log(Response);
@@ -394,7 +396,8 @@ async function Vision(base64Image) {
       return output;
     }
   }catch(e){
-  return "No relevant data found from SerpApi.";
+    nodes.statusMessage.innerText = "No data from Serp, Starting Gemini";
+    return "No relevant data found from SerpApi.";
   }
 }
 // --- STARTUP ---
