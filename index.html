@@ -85,7 +85,7 @@
   <div id="app" class="sidebar">
     <div class="content">
       <h1 id="title">GeoSpy</h1>
-      <h1>Find Location</h1>
+      <h1>Find Location By Image</h1>
       
       <input placeholder="Enter Preference" id="prefer" class="prefer">
       <div class="btn-group">
@@ -96,7 +96,7 @@
       <input type="file" id="fileInput" class="hidden" accept="image/*" />
       
       <div id="emptyState">
-        <p>Upload an image to identify its location using AI.</p>
+        <p>AI Can make mistakes, try to provide preference to improve accuracy.</p>
       </div>
 
       <div id="resultView" class="hidden">
@@ -115,6 +115,9 @@
                <span id="locCoords" class="coords"></span>
             </div>
             <div id="locReasoning" class="reasoning"></div>
+            <div id="options" class="hidden">
+              <button id="btn" class="mainBtn">Location 1</button>
+            </div>
           </div>
 
           <div class="inference-box">
