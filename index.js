@@ -8,8 +8,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import L from "leaflet";
-import * as mobilenet from "https://cdn.skypack.dev/@tensorflow-models/mobilenet";
-import Tesseract from "https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/+esm";
+
 // --- CONFIGURATION & CONSTANTS ---
 
 /**
@@ -214,6 +213,8 @@ async function identifyLocation(base64Image, file) {
   }
   /* 3. Fallback: Local Object Detection (TensorFlow.js)
   try {
+    import * as mobilenet from "https://cdn.skypack.dev/@tensorflow-models/mobilenet";
+    import Tesseract from "https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/+esm"; 
     nodes.statusMessage.innerText="local test begins";
     const data = await runLocalObjectAnalysis(nodes.previewImg, base64Image);
     return data;
