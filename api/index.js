@@ -13,14 +13,16 @@ app.get("/search.json", async (req, res) => {
             engine: "google_lens",
             url: req.query.url,
             api_key: process.env.SERP_AI,
-            no_cache: true // Necessary to get a valid token
+            no_cache: true, // Necessary to get a valid token
+            timeout: 60000 
         }, async (lensJson) => {
             const token=lensJson.ai_overview?.page_token;
             getJson({
                 engine: "google_ai_overview",
                 page_token: token,
                 api_key: process.env.SERP_AI,
-                no_cache: true
+                no_cache: true,
+                timeout: 20000 // 20-second timeout in milliseconds
             }, (overviewJson) => {
                 res.json({...lensJson, ai_overview: overviewJson.ai_overview});
             })
