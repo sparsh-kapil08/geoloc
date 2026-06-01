@@ -1,20 +1,7 @@
-/**
- * GeoSpy - Simplified Intelligence Pipeline
- * This script handles the frontend logic for an application that identifies the location of an uploaded image.
- * Simplified Pipeline:
- * 1. Try Gemini AI (Visual Analysis)
- * 2. If AI fails, try Tensor Flow dataset
- */
-
 import { GoogleGenAI, Type } from "@google/genai";
 import L from "leaflet";
 
-// --- CONFIGURATION & CONSTANTS ---
 
-/**
- * Schema for the expected JSON response from the Gemini AI model.
- * This ensures the AI returns data in a predictable structure.
- */
 const GEMINI_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -29,7 +16,6 @@ const GEMINI_RESPONSE_SCHEMA = {
   required: ["lat", "lng", "city", "country", "confidence", "reasoning", "visualAnalysisSummary"]
 };
 
-// --- APPLICATION STATE ---
 
 const state ={
   markers: [],
@@ -62,11 +48,6 @@ const nodes = {
   option: document.getElementById('option'),
 };
 
-// --- INITIALIZATION ---
-
-/**
- * Initializes the application, state.map, and event listeners.
- */
 function init() {
   state.map = L.map('map', {
     zoomControl: false,
@@ -86,12 +67,7 @@ function init() {
   window.addEventListener('resize', () => state.map.invalidateSize());
 }
 
-// --- CORE PIPELINE ---
 
-/**
- * Handles the file input change event. Starts the analysis pipeline.
- * The file input change event.
- */
 async function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -125,9 +101,6 @@ async function handleFileSelect(e) {
   reader.readAsDataURL(file);
 }
 
-/**
- * Main Logic: Tries AI first, then falls back to Metadata.
- */
 async function identifyLocation(base64Image, file) {
   const serpResponse = await Vision(base64Image);
   // 1. Try Gemini AI
@@ -286,9 +259,7 @@ function renderResults(data) {
   }
 }
 
-/**
- * Resets the application to its initial state.
- */
+
 function resetApp() {
   nodes.resultView.classList.add('hidden');
   nodes.emptyState.classList.remove('hidden');
@@ -299,10 +270,7 @@ function resetApp() {
   state.map.flyTo([20, 0], 2);
 }
 
-/**
- * Runs a local neural network (Coco-SSD) to detect objects and infer environment.
- * This runs entirely in the browser without any API calls.
- */
+//--LOCAL ANALYSIS NOT UNDER USE--
 async function runLocalObjectAnalysis(imgElement, base64Image) {
   nodes.statusMessage.innerText = "Running Local Vision & OCR Analysis...";
 
@@ -366,6 +334,7 @@ async function runLocalObjectAnalysis(imgElement, base64Image) {
 
   return result;
 }
+//LOCAL MODEL ANALYSIS ENDS
 async function Vision(base64Image) {
   const preference = nodes.prefer.value;
   const formData = new FormData();
